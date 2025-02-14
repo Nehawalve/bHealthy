@@ -1,0 +1,18 @@
+{% extends "healthcare_app/base.html" %}
+{% block title %}My Appointments{% endblock %}
+{% block content %}
+<h2 class="mb-4">My Appointments</h2>
+{% if appointments %}
+  <div class="list-group">
+    {% for appointment in appointments %}
+      <div class="list-group-item list-group-item-action mb-2">
+        <h5 class="mb-1">{{ appointment.doctor_name }}</h5>
+        <p class="mb-1"><strong>Date:</strong> {{ appointment.appointment_date|date:"M d, Y H:i" }}</p>
+        <p class="mb-1"><strong>Reason:</strong> {{ appointment.reason }}</p>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="text-muted">You have no appointments scheduled.</p>
+{% endif %}
+{% endblock %}

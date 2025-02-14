@@ -1,0 +1,112 @@
+# healthcare_app/forms.py
+from django import forms
+from django.core.validators import RegexValidator
+from .models import Appointment, Patient
+
+class AppointmentForm(forms.ModelForm):
+    class Meta:
+        model = Appointment
+        fields = ['patient', 'appointment_date', 'doctor_name', 'reason']
+        labels = {
+            'patient': 'Select Patient',
+            'appointment_date': 'Date & Time',
+            'doctor_name': 'Doctor Name',
+            'reason': 'Reason for Appointment',
+        }
+        help_texts = {
+            'appointment_date': 'Choose a suitable date and time.',
+            'reason': 'Describe the reason or symptoms for this appointment.',
+        }
+        widgets = {
+            'patient': forms.Select(
+                attrs={
+                    'class': 'form-select',
+                }
+            ),
+            'appointment_date': forms.DateTimeInput(
+                attrs={
+                    'type': 'datetime-local',
+                    'class': 'form-control',
+                    'placeholder': 'YYYY-MM-DD HH:MM',
+                }
+            ),
+            'doctor_name': forms.TextInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': 'Enter doctor’s name',
+                }
+            ),
+            'reason': forms.Textarea(
+                attrs={
+                    'class': 'form-control',
+                    'rows': 4,
+                    'placeholder': 'Briefly describe your reason or symptoms',
+                }
+            ),
+        }
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)  # We’ll pass 'user' from the view
+        super().__init__(*args, **kwargs)
+
+        # Check if the user is provided and authenticated
+        if user is not None and getattr(user, 'is_authenticated', False):
+            self.fields['patient'].queryset = Patient.objects.filter(user=user)
+        else:
+            self.fields['patient'].queryset = Patient.objects.all()
+        #below is original remove above one to go back to original
+        #if user and 'patient' in self.fields:
+            #self.fields['patient'].queryset = Patient.objects.filter(user=user)
+        #else:
+            # For anonymous users, you can either show all patients or none.
+            # Here we choose to show all.
+            #self.fields['patient'].queryset = Patient.objects.all()
+
+class PatientForm(forms.ModelForm):
+    # Example phone regex validator
+    phone_regex = RegexValidator(
+        regex=r'^\+?1?\d{9,15}$',
+        message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed."
+    )
+
+    # Override the phone field to include validation
+    phone = forms.CharField(
+        validators=[phone_regex],
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'e.g. +1234567890'
+        })
+    )
+
+    # Override the dob (Date of Birth) field to use an HTML5 date picker
+    dob = forms.DateField(
+        widget=forms.DateInput(
+            attrs={
+                'type': 'date',         # HTML5 date input
+                'class': 'form-control'
+            }
+        ),
+        label="Date of Birth"
+    )
+
+    # Override the email field to use HTML5 email input
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'name@example.com'
+        })
+    )
+
+    class Meta:
+        model = Patient
+        fields = ['first_name', 'last_name', 'dob', 'email', 'phone']
+        widgets = {
+            'first_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter first name'
+            }),
+            'last_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter last name'
+            }),
+            # We already overrode `dob`, `email`, and `phone` above
+        }

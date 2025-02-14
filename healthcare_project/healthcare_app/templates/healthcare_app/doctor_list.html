@@ -1,0 +1,30 @@
+{% extends "healthcare_app/base.html" %}
+{% block title %}Our Doctors{% endblock %}
+{% block content %}
+<div class="mb-4">
+  <h2>Our Doctors</h2>
+  <form method="get" class="row g-3">
+    <div class="col-md-8">
+      <input type="text" name="q" class="form-control" placeholder="Search doctors" value="{{ request.GET.q }}">
+    </div>
+    <div class="col-md-4">
+      <button type="submit" class="btn btn-primary">Search</button>
+    </div>
+  </form>
+</div>
+<div class="row">
+  {% for doctor in doctors %}
+    <div class="col-md-4">
+      <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">{{ doctor.name }}</h5>
+          <h6 class="card-subtitle mb-2 text-muted">{{ doctor.specialty }}</h6>
+          <p class="card-text">{{ doctor.bio|truncatewords:20 }}</p>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <p class="text-muted">No doctors found.</p>
+  {% endfor %}
+</div>
+{% endblock %}

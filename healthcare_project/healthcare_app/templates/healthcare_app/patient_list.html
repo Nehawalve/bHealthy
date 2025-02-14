@@ -1,0 +1,20 @@
+{% extends "healthcare_app/base.html" %}
+{% block title %}My Patients{% endblock %}
+{% block content %}
+  <h2>My Patients</h2>
+  <a href="{% url 'patient_create' %}" class="btn btn-primary mb-3">Add New Patient</a>
+
+  {% if patients %}
+    <ul class="list-group">
+      {% for patient in patients %}
+        <li class="list-group-item">
+          <strong>{{ patient.first_name }} {{ patient.last_name }}</strong><br>
+          <span>{{ patient.email }}</span><br>
+          <span>{{ patient.phone }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>You have no patients yet.</p>
+  {% endif %}
+{% endblock %}

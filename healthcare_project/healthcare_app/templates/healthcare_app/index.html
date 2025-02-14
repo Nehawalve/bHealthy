@@ -1,0 +1,99 @@
+{% extends "healthcare_app/base.html" %}
+{% load static %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section position-relative text-white text-center">
+  <div class="hero-overlay"></div>
+  <div class="hero-content container d-flex flex-column justify-content-center align-items-center">
+    <h1 class="display-3 fw-bold">Welcome to Our Healthcare Center</h1>
+    <p class="lead my-4">Compassionate care with cutting-edge medical solutions—because your health is our priority.</p>
+    <a href="{% url 'book_appointment' %}" class="btn btn-lg btn-primary">Book an Appointment</a>
+  </div>
+</div>
+
+<!-- Services Section -->
+<section class="services py-5">
+  <div class="container">
+    <h2 class="text-center mb-5">Our Services</h2>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="card h-100 text-center shadow-sm">
+          <div class="card-body">
+            <i class="bi bi-heart-pulse display-4 text-primary"></i>
+            <h5 class="card-title mt-3">Cardiology</h5>
+            <p class="card-text">State-of-the-art heart care for a strong and healthy life.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100 text-center shadow-sm">
+          <div class="card-body">
+            <i class="bi bi-thermometer-half display-4 text-primary"></i>
+            <h5 class="card-title mt-3">General Health</h5>
+            <p class="card-text">Comprehensive check-ups and treatments for overall wellness.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100 text-center shadow-sm">
+          <div class="card-body">
+            <i class="bi bi-x-diamond-fill display-4 text-primary"></i>
+            <h5 class="card-title mt-3">Surgery</h5>
+            <p class="card-text">Modern surgical procedures with minimal downtime.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- About Us Section -->
+<section class="about-us py-5 bg-light">
+  <div class="container">
+    <div class="row align-items-center g-4">
+      <div class="col-md-6">
+        <img src="{% static 'healthcare_app/images/about-us.jpg' %}" class="img-fluid rounded" alt="About Us">
+      </div>
+      <div class="col-md-6">
+        <h2>About Our Clinic</h2>
+        <p>Our experienced team is dedicated to providing you with the highest quality of healthcare. We combine compassion with advanced technology to ensure your well-being.</p>
+        <a href="{% url 'about' %}" class="btn btn-outline-primary mt-3">Learn More</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="testimonials py-5">
+  <div class="container">
+    <h2 class="text-center mb-5">What Our Patients Say</h2>
+    <div id="testimonialCarousel" class="carousel slide" data-bs-ride="carousel">
+      <div class="carousel-inner">
+        <div class="carousel-item active">
+          <div class="testimonial text-center">
+            <p class="lead">"The care I received was outstanding. Every visit made me feel safe and valued."</p>
+            <h5 class="mt-3">- Jane Doe</h5>
+          </div>
+        </div>
+        <div class="carousel-item">
+          <div class="testimonial text-center">
+            <p class="lead">"A truly patient-centric approach with state-of-the-art facilities."</p>
+            <h5 class="mt-3">- John Smith</h5>
+          </div>
+        </div>
+      </div>
+      <button class="carousel-control-prev" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
