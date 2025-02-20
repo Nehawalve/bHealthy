@@ -1,0 +1,22 @@
+{% extends "healthcare_app/base.html" %}
+{% block title %}Order Details{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <h2 class="mb-4">Order Details</h2>
+  {% if orders %}
+    <div class="list-group">
+      {% for order in orders %}
+        <div class="list-group-item">
+          <h5>Order #{{ order.id }}</h5>
+          <p><strong>Date:</strong> {{ order.order_date|date:"M d, Y H:i" }}</p>
+          <p><strong>Total Price:</strong> ${{ order.total_price }}</p>
+          {# Additional order details can be added here #}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">You have not placed any orders yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "healthcare_app/base.html" %}
+
+{% block title %}Doctor Dashboard{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <h2 class="mb-4">Doctor Dashboard</h2>
+  
+  <!-- Toggle link for hiding/showing completed checkups -->
+  <div class="mb-3">
+    {% if hide_completed %}
+      <a href="{% url 'doctor_dashboard' %}?hide_completed=0" class="btn btn-secondary btn-sm">Show Completed Checkups</a>
+    {% else %}
+      <a href="{% url 'doctor_dashboard' %}?hide_completed=1" class="btn btn-secondary btn-sm">Hide Completed Checkups</a>
+    {% endif %}
+    <form method="post" action="{% url 'clear_completed_checkups' %}" style="display:inline; margin-left:10px;">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger btn-sm">Clear Completed Checkups</button>
+    </form>
+  </div>
+  
+  {% if appointments %}
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Queue Number</th>
+          <th>Patient</th>
+          <th>Date & Time</th>
+          <th>Reason</th>
+          <th>Checkup Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for appointment in appointments %}
+        <tr>
+          <td>{{ appointment.queue_number }}</td>
+          <td>{{ appointment.patient.first_name }} {{ appointment.patient.last_name }}</td>
+          <td>{{ appointment.appointment_date|date:"M d, Y H:i" }}</td>
+          <td>{{ appointment.reason }}</td>
+          <td>
+            {% if appointment.checkup_done %}
+              <span class="text-success fs-4">&#10003;</span>
+            {% else %}
+              <form method="post" action="{% url 'mark_checkup_done' appointment.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-success btn-sm">&#10003; Mark as Done</button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No appointments scheduled.</p>
+  {% endif %}
+</div>
+{% endblock %}

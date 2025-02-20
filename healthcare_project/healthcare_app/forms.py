@@ -2,15 +2,19 @@
 from django import forms
 from django.core.validators import RegexValidator
 from .models import Appointment, Patient
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
+from .models import DoctorProfile
+
 
 class AppointmentForm(forms.ModelForm):
     class Meta:
         model = Appointment
-        fields = ['patient', 'appointment_date', 'doctor_name', 'reason']
+        fields = ['patient', 'appointment_date', 'doctor', 'reason']
         labels = {
             'patient': 'Select Patient',
             'appointment_date': 'Date & Time',
-            'doctor_name': 'Doctor Name',
+            'doctor': 'Doctor Name',
             'reason': 'Reason for Appointment',
         }
         help_texts = {
@@ -30,11 +34,8 @@ class AppointmentForm(forms.ModelForm):
                     'placeholder': 'YYYY-MM-DD HH:MM',
                 }
             ),
-            'doctor_name': forms.TextInput(
-                attrs={
-                    'class': 'form-control',
-                    'placeholder': 'Enter doctor’s name',
-                }
+            'doctor': forms.Select(
+                attrs={'class': 'form-control'}
             ),
             'reason': forms.Textarea(
                 attrs={
@@ -110,3 +111,20 @@ class PatientForm(forms.ModelForm):
             }),
             # We already overrode `dob`, `email`, and `phone` above
         }
+
+class DoctorRegistrationForm(UserCreationForm):
+    email = forms.EmailField(required=True)
+    specialty = forms.CharField(max_length=100)
+    bio = forms.CharField(widget=forms.Textarea, required=True)
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'specialty', 'bio', 'password1', 'password2']
+
+    def save(self, commit=True):
+        user = super().save(commit)
+        specialty = self.cleaned_data['specialty']
+        bio = self.cleaned_data['bio']
+        # Create a corresponding DoctorProfile linked to the new user.
+        DoctorProfile.objects.create(user=user, specialty=specialty, bio=bio)
+        return user

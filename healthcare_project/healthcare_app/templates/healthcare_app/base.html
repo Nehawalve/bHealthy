@@ -17,18 +17,18 @@
       <a class="navbar-brand text-white fs-4" href="{% url 'home' %}">Healthcare</a>
       <nav>
         <ul class="nav">
-          <li class="nav-item"><a class="nav-link text-white" href="{% url 'home' %}">Home</a></li>
-          <li class="nav-item"><a class="nav-link text-white" href="{% url 'doctor_list' %}">Doctors</a></li>
-          <li class="nav-item"><a class="nav-link text-white" href="{% url 'book_appointment' %}">Book Appointment</a></li>
-          <li class="nav-item"><a class="nav-link text-white" href="{% url 'appointment_list' %}">My Appointments</a></li>
           {% if user.is_authenticated %}
-  <li class="nav-item">
-    <a class="nav-link text-white" href="{% url 'patient_list' %}">My Patients</a>
-  </li>
-{% endif %}
-
-          {% if user.is_authenticated %}
-            <li class="nav-item">
+            {% if user.doctorprofile %}
+              {# Doctor-specific navigation #}
+              <li class="nav-item"><a class="nav-link text-white" href="{% url 'doctor_dashboard' %}">Dashboard</a></li>
+            {% else %}
+              {# Patient-specific navigation #}
+              <li class="nav-item"><a class="nav-link text-white" href="{% url 'doctor_list' %}">Doctors</a></li>
+              <li class="nav-item"><a class="nav-link text-white" href="{% url 'book_appointment' %}">Book Appointment</a></li>
+              <li class="nav-item"><a class="nav-link text-white" href="{% url 'appointment_list' %}">My Appointments</a></li>
+              <li class="nav-item"><a class="nav-link text-white" href="{% url 'patient_list' %}">My Patients</a></li>
+            {% endif %}
+            <li class="nav-item d-flex align-items-center">
               <form action="{% url 'logout' %}" method="post" style="display: inline;">
                 {% csrf_token %}
                 <button type="submit" class="nav-link btn btn-link text-white" style="padding: 0; border: none; background: none;">
@@ -37,8 +37,12 @@
               </form>
             </li>
           {% else %}
+            {# Navigation for anonymous users #}
+            <li class="nav-item"><a class="nav-link text-white" href="{% url 'home' %}">Home</a></li>
             <li class="nav-item"><a class="nav-link text-white" href="{% url 'login' %}">Login</a></li>
             <li class="nav-item"><a class="nav-link text-white" href="{% url 'register' %}">Register</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="{% url 'doctor_login' %}">Doctor Login</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="{% url 'doctor_register' %}">Doctor Register</a></li>
           {% endif %}
         </ul>
       </nav>

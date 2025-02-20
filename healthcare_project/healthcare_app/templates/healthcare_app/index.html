@@ -18,32 +18,66 @@
   <div class="container">
     <h2 class="text-center mb-5">Our Services</h2>
     <div class="row g-4">
+      <!-- Lab Test -->
       <div class="col-md-4">
-        <div class="card h-100 text-center shadow-sm">
-          <div class="card-body">
-            <i class="bi bi-heart-pulse display-4 text-primary"></i>
-            <h5 class="card-title mt-3">Cardiology</h5>
-            <p class="card-text">State-of-the-art heart care for a strong and healthy life.</p>
+        <a href="{% url 'lab_tests' %}" class="text-decoration-none">
+          <div class="card h-100 text-center shadow-sm">
+            <div class="card-body">
+              <i class="bi bi-pipette display-4 text-primary"></i>
+
+              <h5 class="card-title mt-3">Lab Test</h5>
+              <p class="card-text">Explore a wide range of lab tests with transparent pricing and easy booking.</p>
+            </div>
           </div>
-        </div>
+        </a>
       </div>
+      <!-- Buy Medicine -->
       <div class="col-md-4">
-        <div class="card h-100 text-center shadow-sm">
-          <div class="card-body">
-            <i class="bi bi-thermometer-half display-4 text-primary"></i>
-            <h5 class="card-title mt-3">General Health</h5>
-            <p class="card-text">Comprehensive check-ups and treatments for overall wellness.</p>
+        <a href="{% url 'buy_medicine' %}" class="text-decoration-none">
+          <div class="card h-100 text-center shadow-sm">
+            <div class="card-body">
+              <i class="bi bi-bag-check display-4 text-primary"></i>
+              <h5 class="card-title mt-3">Buy Medicine</h5>
+              <p class="card-text">Order your prescribed medicines online with secure payment and fast delivery.</p>
+            </div>
           </div>
-        </div>
+        </a>
       </div>
+      <!-- Find Doctor -->
       <div class="col-md-4">
-        <div class="card h-100 text-center shadow-sm">
-          <div class="card-body">
-            <i class="bi bi-x-diamond-fill display-4 text-primary"></i>
-            <h5 class="card-title mt-3">Surgery</h5>
-            <p class="card-text">Modern surgical procedures with minimal downtime.</p>
+        <a href="{% url 'doctor_list' %}?genre=all" class="text-decoration-none">
+          <div class="card h-100 text-center shadow-sm">
+            <div class="card-body">
+              <i class="bi bi-person-lines-fill display-4 text-primary"></i>
+              <h5 class="card-title mt-3">Find Doctor</h5>
+              <p class="card-text">Search for specialized doctors – Physician, Dietician, Dentist, Surgeon, Gynaecologist, and more.</p>
+            </div>
           </div>
-        </div>
+        </a>
+      </div>
+      <!-- Health Articles -->
+      <div class="col-md-4">
+        <a href="{% url 'health_articles' %}" class="text-decoration-none">
+          <div class="card h-100 text-center shadow-sm">
+            <div class="card-body">
+              <i class="bi bi-newspaper display-4 text-primary"></i>
+              <h5 class="card-title mt-3">Health Articles</h5>
+              <p class="card-text">Read trending health articles and stay updated with the latest wellness tips.</p>
+            </div>
+          </div>
+        </a>
+      </div>
+      <!-- Order Details -->
+      <div class="col-md-4">
+        <a href="{% url 'order_details' %}" class="text-decoration-none">
+          <div class="card h-100 text-center shadow-sm">
+            <div class="card-body">
+              <i class="bi bi-receipt display-4 text-primary"></i>
+              <h5 class="card-title mt-3">Order Details</h5>
+              <p class="card-text">Review your medicine orders with detailed pricing and delivery status.</p>
+            </div>
+          </div>
+        </a>
       </div>
     </div>
   </div>
@@ -95,5 +129,4 @@
     </div>
   </div>
 </section>
-
 {% endblock %}

@@ -1,5 +1,6 @@
 {% extends "healthcare_app/base.html" %}
 {% block title %}Our Doctors{% endblock %}
+
 {% block content %}
 <div class="mb-4">
   <h2>Our Doctors</h2>
@@ -17,9 +18,18 @@
     <div class="col-md-4">
       <div class="card mb-4 shadow-sm">
         <div class="card-body">
-          <h5 class="card-title">{{ doctor.name }}</h5>
+          {# If using DoctorProfile, show the doctor's full name and specialty #}
+          <h5 class="card-title">
+            {% if doctor.user.get_full_name %}
+              {{ doctor.user.get_full_name }}
+            {% else %}
+              {{ doctor.user.username }}
+            {% endif %}
+          </h5>
           <h6 class="card-subtitle mb-2 text-muted">{{ doctor.specialty }}</h6>
           <p class="card-text">{{ doctor.bio|truncatewords:20 }}</p>
+          {# Optionally, add a link to view more details or to book an appointment filtered for this specialty #}
+          <a href="{% url 'book_appointment' %}?doctor={{ doctor.id }}" class="btn btn-primary btn-sm">Book Appointment</a>
         </div>
       </div>
     </div>

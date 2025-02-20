@@ -8,6 +8,7 @@ urlpatterns = [
     path('doctors/', views.doctor_list, name='doctor_list'),
     path('appointment/', views.book_appointment, name='book_appointment'),
     path('appointments/', views.appointment_list, name='appointment_list'),
+    path('appointment/cancel/<int:appointment_id>/', views.cancel_appointment, name='cancel_appointment'),
     
     # -- Patient Management --
     path('patients/', views.patient_list, name='patient_list'),
@@ -17,4 +18,21 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('login/', auth_views.LoginView.as_view(template_name='healthcare_app/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='home'), name='logout'),
+
+    path('doctor/register/', views.doctor_register, name='doctor_register'),
+    path('doctor/login/', auth_views.LoginView.as_view(template_name='healthcare_app/doctor_login.html'), name='doctor_login'),
+    path('doctor/dashboard/', views.doctor_dashboard, name='doctor_dashboard'),
+    path('doctor/appointment/done/<int:appointment_id>/', views.mark_checkup_done, name='mark_checkup_done'),
+    path('doctor/clear_completed/', views.clear_completed_checkups, name='clear_completed_checkups'),
+
+
+    path('', views.index, name='home'),
+    path('lab_tests/', views.lab_tests, name='lab_tests'),
+    path('lab_tests/book/<int:test_id>/', views.book_lab_test, name='book_lab_test'),
+    path('buy_medicine/', views.buy_medicine, name='buy_medicine'),
+    path('health_articles/', views.health_articles, name='health_articles'),
+    path('articles/<int:article_id>/', views.article_detail, name='article_detail'),
+    path('order_details/', views.order_details, name='order_details'),
+    path('doctor_list/', views.doctor_list, name='doctor_list'),
+    
 ]

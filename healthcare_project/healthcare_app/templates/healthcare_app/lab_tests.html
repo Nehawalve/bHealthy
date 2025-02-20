@@ -1,0 +1,26 @@
+{% extends "healthcare_app/base.html" %}
+{% block title %}Lab Tests{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <h2 class="mb-4">Available Lab Tests</h2>
+  {% if tests %}
+    <div class="row">
+      {% for test in tests %}
+        <div class="col-md-4">
+          <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title">{{ test.name }}</h5>
+              <p class="card-text">{{ test.description }}</p>
+              <p class="card-text"><strong>Price:</strong> ${{ test.price }}</p>
+              <a href="{% url 'book_lab_test' test.id %}" class="btn btn-primary">Book Test</a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">No lab tests available at the moment.</p>
+  {% endif %}
+</div>
+{% endblock %}
