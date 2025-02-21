@@ -7,6 +7,8 @@ class DoctorProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     specialty = models.CharField(max_length=100)
     bio = models.TextField()
+    checkup_fee = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    is_lab_tester = models.BooleanField(default=False)
 
     def __str__(self):
         return self.user.get_full_name() or self.user.username
@@ -23,29 +25,35 @@ class Patient(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
-
 class Appointment(models.Model):
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    patient = models.ForeignKey('Patient', on_delete=models.CASCADE)
     appointment_date = models.DateTimeField()
-    doctor = models.ForeignKey(DoctorProfile, on_delete=models.CASCADE, null=True, blank=True)
+    doctor = models.ForeignKey('DoctorProfile', on_delete=models.CASCADE, null=True, blank=True)
     reason = models.TextField()
     queue_number = models.IntegerField(null=True, blank=True)
-    checkup_done = models.BooleanField(default=False) 
+    checkup_done = models.BooleanField(default=False)
+    is_lab_test = models.BooleanField(default=False)  # Flag for lab test appointments
 
     def save(self, *args, **kwargs):
-        # First, save the current instance
+        # Save first
         super().save(*args, **kwargs)
-        
-         # Recalculate queue numbers for all pending (non-completed) appointments
-        # for the same doctor on the same day, sorted by appointment_date.
-        pending_appointments = Appointment.objects.filter(
-            doctor=self.doctor,
-            appointment_date__date=self.appointment_date.date(),
-            checkup_done=False
-        ).order_by('appointment_date')
-
-        for idx, appointment in enumerate(pending_appointments, start=1):
-            # Update the queue_number only if it differs from the calculated value.
+        # Recalculate queue numbers only for pending non-completed appointments on the same day.
+        # For lab test appointments, you might choose to recalc separately if needed.
+        if not self.is_lab_test:
+            appointments = Appointment.objects.filter(
+                doctor=self.doctor,
+                appointment_date__date=self.appointment_date.date(),
+                checkup_done=False,
+                is_lab_test=False
+            ).order_by('appointment_date')
+        else:
+            # For lab test appointments, recalc queue numbers for all lab test appointments on that day.
+            appointments = Appointment.objects.filter(
+                is_lab_test=True,
+                appointment_date__date=self.appointment_date.date(),
+                checkup_done=False
+            ).order_by('appointment_date')
+        for idx, appointment in enumerate(appointments, start=1):
             if appointment.queue_number != idx:
                 Appointment.objects.filter(pk=appointment.pk).update(queue_number=idx)
 
@@ -79,11 +87,24 @@ class HealthArticle(models.Model):
     def __str__(self):
         return self.title
 
+class Medicine(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    price = models.DecimalField(max_digits=8, decimal_places=2)
+    # Optionally include stock, expiry, etc.
+
+    def __str__(self):
+        return self.name
+
 class MedicineOrder(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    medicine = models.ForeignKey(Medicine, on_delete=models.CASCADE,null=True, blank=True)
     order_date = models.DateTimeField(auto_now_add=True)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=50, default='Pending')  # e.g. Pending, Confirmed, Delivered, Cancelled
 
     def __str__(self):
         return f"Order {self.id} by {self.patient}"
 
+
+    

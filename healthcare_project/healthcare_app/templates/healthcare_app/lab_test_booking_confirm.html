@@ -1,0 +1,21 @@
+{% extends "healthcare_app/base.html" %}
+{% block title %}Booking Confirmed{% endblock %}
+{% block content %}
+<div class="container my-5 text-center">
+   <div id="confirmationMessage" style="opacity: 0; transition: opacity 1s;">
+       <h2 class="text-success">Booking Confirmed!</h2>
+       <p>Your lab test appointment has been scheduled.</p>
+   </div>
+</div>
+<script>
+// When the page loads, animate the confirmation message and then redirect.
+document.addEventListener("DOMContentLoaded", function(){
+   var msg = document.getElementById("confirmationMessage");
+   msg.style.opacity = 1; // Fade in
+   // Redirect after 3 seconds
+   setTimeout(function(){
+       window.location.href = "{% url 'appointment_list' %}";
+   }, 3000);
+});
+</script>
+{% endblock %}

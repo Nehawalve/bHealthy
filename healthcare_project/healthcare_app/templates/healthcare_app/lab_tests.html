@@ -4,23 +4,39 @@
 {% block content %}
 <div class="container my-5">
   <h2 class="mb-4">Available Lab Tests</h2>
-  {% if tests %}
-    <div class="row">
-      {% for test in tests %}
-        <div class="col-md-4">
-          <div class="card mb-4 shadow-sm">
-            <div class="card-body">
-              <h5 class="card-title">{{ test.name }}</h5>
-              <p class="card-text">{{ test.description }}</p>
-              <p class="card-text"><strong>Price:</strong> ${{ test.price }}</p>
-              <a href="{% url 'book_lab_test' test.id %}" class="btn btn-primary">Book Test</a>
-            </div>
+  
+  <!-- Real-time Search Box -->
+  <div class="mb-4">
+    <input type="text" id="labTestSearch" class="form-control" placeholder="Search lab tests...">
+  </div>
+  
+  <div class="row" id="labTestsContainer">
+    {% for test in tests %}
+      <div class="col-md-4 lab-test-card">
+        <div class="card mb-4 shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title">{{ test.name }}</h5>
+            <p class="card-text">{{ test.description }}</p>
+            <p class="card-text"><strong>Price:</strong> ₹{{ test.price }}</p>
+            <a href="{% url 'book_lab_test' test.id %}" class="btn btn-primary">Schedule &amp; Book</a>
           </div>
         </div>
-      {% endfor %}
-    </div>
-  {% else %}
-    <p class="text-muted">No lab tests available at the moment.</p>
-  {% endif %}
+      </div>
+    {% endfor %}
+  </div>
 </div>
+
+<script>
+// Listen for keyup events on the search input
+document.getElementById('labTestSearch').addEventListener('keyup', function() {
+    var searchTerm = this.value.toLowerCase();
+    var labTestCards = document.querySelectorAll('.lab-test-card');
+    labTestCards.forEach(function(card) {
+        // Get the lab test name from the card's title
+        var testName = card.querySelector('.card-title').textContent.toLowerCase();
+        // Show or hide the card based on match
+        card.style.display = testName.includes(searchTerm) ? 'block' : 'none';
+    });
+});
+</script>
 {% endblock %}

@@ -1,9 +1,25 @@
 {% extends "healthcare_app/base.html" %}
 {% block title %}Buy Medicine{% endblock %}
-
 {% block content %}
 <div class="container my-5">
-  <h2>Buy Medicine</h2>
-  <p>This feature is coming soon. You will be able to purchase your prescribed medicines online with secure payment and fast delivery.</p>
+  <h2 class="mb-4">Available Medicines</h2>
+  {% if medicines %}
+    <div class="row">
+      {% for med in medicines %}
+        <div class="col-md-4">
+          <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title">{{ med.name }}</h5>
+              <p class="card-text">{{ med.description }}</p>
+              <p class="card-text"><strong>Price:</strong> ₹{{ med.price }}</p>
+              <a href="{% url 'order_medicine' med.id %}" class="btn btn-primary">Order</a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">No medicines available at the moment.</p>
+  {% endif %}
 </div>
 {% endblock %}

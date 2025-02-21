@@ -4,21 +4,52 @@
 {% block content %}
 <div class="mb-4">
   <h2>Our Doctors</h2>
-  <form method="get" class="row g-3">
-    <div class="col-md-8">
-      <input type="text" name="q" class="form-control" placeholder="Search doctors" value="{{ request.GET.q }}">
-    </div>
-    <div class="col-md-4">
-      <button type="submit" class="btn btn-primary">Search</button>
-    </div>
-  </form>
+  <!-- Genre Filter Pills -->
+  <ul class="nav nav-pills justify-content-center flex-wrap mb-3">
+    <li class="nav-item">
+      <a class="nav-link {% if not genre or genre|lower == 'all' %}active{% endif %}" href="{% url 'doctor_list' %}?genre=all">All</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if genre|lower == 'neurologist' %}active{% endif %}" href="{% url 'doctor_list' %}?genre=neurologist">Neurologist</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if genre|lower == 'surgeon' %}active{% endif %}" href="{% url 'doctor_list' %}?genre=surgeon">Surgeon</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if genre|lower == 'gynecologist' %}active{% endif %}" href="{% url 'doctor_list' %}?genre=gynecologist">Gynecologist</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if genre|lower == 'cardiologist' %}active{% endif %}" href="{% url 'doctor_list' %}?genre=cardiologist">Cardiologist</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if genre|lower == 'dentist' %}active{% endif %}" href="{% url 'doctor_list' %}?genre=dentist">Dentist</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if genre|lower == 'dietician' %}active{% endif %}" href="{% url 'doctor_list' %}?genre=dietician">Dietician</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if genre|lower == 'orthopedist' %}active{% endif %}" href="{% url 'doctor_list' %}?genre=orthopedist">Orthopedist</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if genre|lower == 'dermatologist' %}active{% endif %}" href="{% url 'doctor_list' %}?genre=dermatologist">Dermatologist</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if genre|lower == 'psychiatrist' %}active{% endif %}" href="{% url 'doctor_list' %}?genre=psychiatrist">Psychiatrist</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if genre|lower == 'pediatrician' %}active{% endif %}" href="{% url 'doctor_list' %}?genre=pediatrician">Pediatrician</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if genre|lower == 'ent' %}active{% endif %}" href="{% url 'doctor_list' %}?genre=ent">ENT</a>
+    </li>
+  </ul>
 </div>
+
 <div class="row">
   {% for doctor in doctors %}
     <div class="col-md-4">
       <div class="card mb-4 shadow-sm">
         <div class="card-body">
-          {# If using DoctorProfile, show the doctor's full name and specialty #}
           <h5 class="card-title">
             {% if doctor.user.get_full_name %}
               {{ doctor.user.get_full_name }}
@@ -27,14 +58,19 @@
             {% endif %}
           </h5>
           <h6 class="card-subtitle mb-2 text-muted">{{ doctor.specialty }}</h6>
+          {% if doctor.checkup_fee %}
+            <p class="card-text"><strong>Checkup Fee:</strong> ₹{{ doctor.checkup_fee }}</p>
+          {% else %}
+            <p class="card-text"><strong>Fee:</strong> Call for details</p>
+          {% endif %}
           <p class="card-text">{{ doctor.bio|truncatewords:20 }}</p>
-          {# Optionally, add a link to view more details or to book an appointment filtered for this specialty #}
+          <!-- Book Appointment Button: Pass doctor.id to auto-select in booking page -->
           <a href="{% url 'book_appointment' %}?doctor={{ doctor.id }}" class="btn btn-primary btn-sm">Book Appointment</a>
         </div>
       </div>
     </div>
   {% empty %}
-    <p class="text-muted">No doctors found.</p>
+    <p class="text-muted text-center">No doctors found.</p>
   {% endfor %}
 </div>
 {% endblock %}

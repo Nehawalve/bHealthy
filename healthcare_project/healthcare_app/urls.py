@@ -34,5 +34,11 @@ urlpatterns = [
     path('articles/<int:article_id>/', views.article_detail, name='article_detail'),
     path('order_details/', views.order_details, name='order_details'),
     path('doctor_list/', views.doctor_list, name='doctor_list'),
+    path('medicine/order/<int:medicine_id>/', views.order_medicine, name='order_medicine'),
+    path('medicine/order/cancel/<int:order_id>/', views.cancel_medicine_order, name='cancel_medicine_order'),
+    path('medicine/order/clear/', views.clear_order_entries, name='clear_order_entries'),
+    path('external_health_articles/', views.fetch_trending_articles_gnews, name='external_health_articles'),
+    
+    
     
 ]

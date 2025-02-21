@@ -1,17 +1,32 @@
 {% extends "healthcare_app/base.html" %}
 {% block title %}Order Details{% endblock %}
-
 {% block content %}
 <div class="container my-5">
   <h2 class="mb-4">Order Details</h2>
+  
+  <!-- Clear Completed/Cancelled Orders Button -->
+  <div class="mb-3">
+    <form method="post" action="{% url 'clear_order_entries' %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger btn-sm">Clear Completed/Cancelled Orders</button>
+    </form>
+  </div>
+  
   {% if orders %}
     <div class="list-group">
       {% for order in orders %}
         <div class="list-group-item">
           <h5>Order #{{ order.id }}</h5>
           <p><strong>Date:</strong> {{ order.order_date|date:"M d, Y H:i" }}</p>
-          <p><strong>Total Price:</strong> ${{ order.total_price }}</p>
-          {# Additional order details can be added here #}
+          <p><strong>Medicine:</strong> {{ order.medicine.name }}</p>
+          <p><strong>Total Price:</strong> ₹{{ order.total_price }}</p>
+          <p><strong>Status:</strong> {{ order.status }}</p>
+          {% if order.status|lower == "pending" %}
+            <form method="post" action="{% url 'cancel_medicine_order' order.id %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger btn-sm">Cancel Order</button>
+            </form>
+          {% endif %}
         </div>
       {% endfor %}
     </div>

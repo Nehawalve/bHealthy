@@ -112,19 +112,50 @@ class PatientForm(forms.ModelForm):
             # We already overrode `dob`, `email`, and `phone` above
         }
 
+SPECIALTY_CHOICES = [
+    ('neurologist', 'Neurologist'),
+    ('surgeon', 'Surgeon'),
+    ('gynecologist', 'Gynecologist'),
+    ('cardiologist', 'Cardiologist'),
+    ('dentist', 'Dentist'),
+    ('dietician', 'Dietician'),
+    ('orthopedist', 'Orthopedist'),
+    ('dermatologist', 'Dermatologist'),
+    ('psychiatrist', 'Psychiatrist'),
+    ('pediatrician', 'Pediatrician'),
+    ('ent', 'ENT'),
+]
+
+
 class DoctorRegistrationForm(UserCreationForm):
     email = forms.EmailField(required=True)
-    specialty = forms.CharField(max_length=100)
+    specialty = forms.ChoiceField(choices=SPECIALTY_CHOICES)
     bio = forms.CharField(widget=forms.Textarea, required=True)
+    checkup_fee = forms.DecimalField(
+        max_digits=8, decimal_places=2, required=True,
+        help_text="Enter your consultation fee in INR."
+    )
+    is_lab_tester = forms.BooleanField(
+        required=False, 
+        label="Register as Lab Tester (For Lab Test Appointments Only)"
+    )
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'specialty', 'bio', 'password1', 'password2']
+        fields = ['username', 'email', 'specialty', 'bio', 'checkup_fee', 'is_lab_tester', 'password1', 'password2']
 
     def save(self, commit=True):
         user = super().save(commit)
         specialty = self.cleaned_data['specialty']
         bio = self.cleaned_data['bio']
-        # Create a corresponding DoctorProfile linked to the new user.
-        DoctorProfile.objects.create(user=user, specialty=specialty, bio=bio)
+        fee = self.cleaned_data['checkup_fee']
+        lab_tester = self.cleaned_data.get('is_lab_tester', False)
+        # Create the DoctorProfile with the provided details.
+        DoctorProfile.objects.create(
+            user=user, 
+            specialty=specialty, 
+            bio=bio, 
+            checkup_fee=fee,
+            is_lab_tester=lab_tester
+        )
         return user

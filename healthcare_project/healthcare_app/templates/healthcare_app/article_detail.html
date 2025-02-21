@@ -1,13 +1,12 @@
 {% extends "healthcare_app/base.html" %}
 {% block title %}{{ article.title }}{% endblock %}
-
 {% block content %}
 <div class="container my-5">
-  <h2>{{ article.title }}</h2>
-  <p class="text-muted">Published on {{ article.published_date|date:"M d, Y" }}</p>
-  <div class="mt-4">
-    {{ article.content|linebreaks }}
-  </div>
-  <a href="{% url 'health_articles' %}" class="btn btn-secondary mt-3">Back to Articles</a>
+    <h2>{{ article.title }}</h2>
+    <p class="text-muted">Published on {{ article.published_date|date:"M d, Y" }}</p>
+    <div class="mt-4">
+        {{ article.content|linebreaks }}
+    </div>
+    <a href="{% url 'health_articles' %}" class="btn btn-secondary mt-3">Back to Articles</a>
 </div>
 {% endblock %}

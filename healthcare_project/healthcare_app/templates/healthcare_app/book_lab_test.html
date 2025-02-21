@@ -3,16 +3,21 @@
 
 {% block content %}
 <div class="container my-5">
-  <h2>Book Lab Test</h2>
-  <div class="card mb-4">
-    <div class="card-body">
-      <h4 class="card-title">{{ test.name }}</h4>
-      <p class="card-text">{{ test.description }}</p>
-      <p class="card-text"><strong>Price:</strong> ${{ test.price }}</p>
-      {# Here you could integrate an actual booking form; for now, we show a confirmation link #}
-      <a href="#" class="btn btn-success">Confirm Booking</a>
+  <h2 class="mb-4">{{ test.name }}</h2>
+  {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+  {% endif %}
+  <p>{{ test.description }}</p>
+  <p><strong>Price:</strong> ₹{{ test.price }}</p>
+  <!-- Scheduling Form -->
+  <form method="post" action="">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="schedule_date" class="form-label">Select Date &amp; Time</label>
+      <input type="datetime-local" id="schedule_date" name="schedule_date" class="form-control" required>
     </div>
-  </div>
-  <a href="{% url 'lab_tests' %}" class="btn btn-secondary">Back to Lab Tests</a>
+    <button type="submit" class="btn btn-success">Confirm Booking</button>
+  </form>
+  <a href="{% url 'lab_tests' %}" class="btn btn-secondary mt-3">Back to Lab Tests</a>
 </div>
 {% endblock %}

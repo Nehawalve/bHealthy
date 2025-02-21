@@ -9,15 +9,13 @@
                 <a href="{{ article.url }}" target="_blank" class="list-group-item list-group-item-action">
                     <h5 class="mb-1">{{ article.title }}</h5>
                     {% if article.publishedAt %}
-                      <small class="text-muted">
-                        Published on {{ article.publishedAt|date:"M d, Y H:i" }}
-                      </small>
+                        <small class="text-muted">Published on {{ article.publishedAt|date:"M d, Y H:i" }}</small>
                     {% endif %}
                     {% if article.description %}
-                      <p class="mb-1">{{ article.description|truncatewords:20 }}</p>
+                        <p class="mb-1">{{ article.description|truncatewords:20 }}</p>
                     {% endif %}
-                    {% if article.source.name %}
-                      <p class="mb-1"><small>Source: {{ article.source.name }}</small></p>
+                    {% if article.source and article.source.name %}
+                        <p class="mb-1"><small>Source: {{ article.source.name }}</small></p>
                     {% endif %}
                 </a>
             {% endfor %}

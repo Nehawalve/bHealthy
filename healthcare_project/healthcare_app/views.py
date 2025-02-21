@@ -2,11 +2,13 @@ from django.shortcuts import get_object_or_404,render, redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from .forms import AppointmentForm
-from .models import LabTest, HealthArticle, MedicineOrder, Appointment, DoctorProfile, Patient
+from .models import LabTest, HealthArticle, MedicineOrder, Appointment, DoctorProfile, Patient,Medicine
 from .forms import PatientForm
 from .forms import DoctorRegistrationForm
 from django.http import HttpResponse
-
+from datetime import datetime
+from django.conf import settings
+import requests
 
 
 def home(request):
@@ -22,12 +24,34 @@ def lab_tests(request):
 @login_required
 def book_lab_test(request, test_id):
     test = get_object_or_404(LabTest, id=test_id)
-    # Here you would implement booking logic.
+    if request.method == "POST":
+        if not request.user.is_authenticated:
+            return redirect('login')
+        try:
+            patient = Patient.objects.get(user=request.user)
+        except Patient.DoesNotExist:
+            return redirect('register')
+        schedule_date_str = request.POST.get('schedule_date')
+        try:
+            schedule_date = datetime.strptime(schedule_date_str, "%Y-%m-%dT%H:%M")
+        except ValueError:
+            return render(request, 'healthcare_app/book_lab_test.html', {'test': test, 'error': 'Invalid date format.'})
+        
+        # Create a lab test appointment with no assigned doctor and flag it as lab test.
+        appointment = Appointment.objects.create(
+            patient=patient,
+            appointment_date=schedule_date,
+            doctor=None,
+            reason=f"Lab Test Booking: {test.name}",
+            is_lab_test=True
+        )
+        return render(request, 'healthcare_app/lab_test_booking_confirm.html', {'appointment': appointment})
     return render(request, 'healthcare_app/book_lab_test.html', {'test': test})
 
 def buy_medicine(request):
-    # Placeholder view for buying medicine.
-    return render(request, 'healthcare_app/buy_medicine.html')
+    # Retrieve all available medicines, you might order them by name.
+    medicines = Medicine.objects.all().order_by('name')
+    return render(request, 'healthcare_app/buy_medicine.html', {'medicines': medicines})
 
 def health_articles(request):
     articles = HealthArticle.objects.filter(trending=True).order_by('-published_date')
@@ -39,16 +63,19 @@ def article_detail(request, article_id):
 
 @login_required
 def order_details(request):
+    # Fetch all orders for the logged-in patient.
     orders = MedicineOrder.objects.filter(patient__user=request.user).order_by('-order_date')
     return render(request, 'healthcare_app/order_details.html', {'orders': orders})
 
+
 def doctor_list(request):
     genre = request.GET.get('genre', None)
-    if genre and genre != 'all':
-        doctors = DoctorProfile.objects.filter(specialty__icontains=genre)
+    if genre and genre.lower() != 'all':
+        doctors = DoctorProfile.objects.filter(specialty__icontains=genre, is_lab_tester=False)
     else:
-        doctors = DoctorProfile.objects.all()
+        doctors = DoctorProfile.objects.filter(is_lab_tester=False)
     return render(request, 'healthcare_app/doctor_list.html', {'doctors': doctors, 'genre': genre})
+
 
 
 def register(request):
@@ -69,13 +96,18 @@ def book_appointment(request):
     # Use request.user only if authenticated; otherwise, use None.
     current_user = request.user if getattr(request.user, 'is_authenticated', False) else None
 
+    initial = {}
+    doctor_id = request.GET.get('doctor')
+    if doctor_id:
+        initial['doctor'] = doctor_id  # set the initial doctor value
+
     if request.method == "POST":
         form = AppointmentForm(request.POST, user=request.user)
         if form.is_valid():
             form.save()
             return redirect('appointment_list')
     else:
-        form = AppointmentForm(user=request.user)
+        form = AppointmentForm(initial=initial,user=request.user)
     return render(request, 'healthcare_app/appointment.html', {'form': form})
 
 
@@ -138,13 +170,18 @@ def doctor_register(request):
 def doctor_dashboard(request):
     try:
         doctor_profile = request.user.doctorprofile
-    except DoctorProfile.DoesNotExist:
+    except Exception:
         return redirect('doctor_register')
     
     hide_completed = request.GET.get('hide_completed') == '1'
     
-    # Fetch appointments for this doctor, ordered by time
-    appointments = Appointment.objects.filter(doctor=doctor_profile).order_by('appointment_date')
+    if doctor_profile.is_lab_tester:
+        # For lab testers, show all lab test appointments
+        appointments = Appointment.objects.filter(is_lab_test=True).order_by('appointment_date')
+    else:
+        # For regular doctors, show only non-lab test appointments assigned to them
+        appointments = Appointment.objects.filter(doctor=doctor_profile, is_lab_test=False).order_by('appointment_date')
+    
     if hide_completed:
         appointments = appointments.filter(checkup_done=False)
     
@@ -153,6 +190,7 @@ def doctor_dashboard(request):
         'hide_completed': hide_completed,
     }
     return render(request, 'healthcare_app/doctor_dashboard.html', context)
+
 
 @login_required
 def cancel_appointment(request, appointment_id):
@@ -167,25 +205,95 @@ def cancel_appointment(request, appointment_id):
 @login_required
 def mark_checkup_done(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
-    # Ensure that only the assigned doctor can mark the appointment as done.
-    if appointment.doctor.user == request.user:
-        appointment.checkup_done = True
-        appointment.save()
-    # Optionally, add a success message here.
+    
+    if appointment.is_lab_test:
+        # For lab test appointments, check if the user is a lab tester
+        try:
+            if request.user.doctorprofile.is_lab_tester:
+                appointment.checkup_done = True
+                appointment.save()
+        except AttributeError:
+            # If the logged-in user doesn't have a doctorprofile
+            pass
+    else:
+        # For regular appointments, check if the appointment's doctor matches the logged-in user
+        if appointment.doctor and appointment.doctor.user == request.user:
+            appointment.checkup_done = True
+            appointment.save()
+    
     return redirect('doctor_dashboard')
 
 
 @login_required
 def clear_completed_checkups(request):
-    # Ensure that the logged-in user has a doctor profile.
     try:
         doctor_profile = request.user.doctorprofile
-    except Exception:
+    except DoctorProfile.DoesNotExist:
         return redirect('doctor_register')
     
     if request.method == "POST":
-        # Delete all completed appointments for this doctor
-        Appointment.objects.filter(doctor=doctor_profile, checkup_done=True).delete()
-        # Optionally, add a message to indicate success.
-    
+        if doctor_profile.is_lab_tester:
+            # For lab testers, clear all completed lab test appointments.
+            Appointment.objects.filter(is_lab_test=True, checkup_done=True).delete()
+        else:
+            # For regular doctors, clear only completed appointments assigned to them.
+            Appointment.objects.filter(doctor=doctor_profile, checkup_done=True, is_lab_test=False).delete()
     return redirect('doctor_dashboard')
+
+
+
+@login_required
+def order_medicine(request, medicine_id):
+    # Get the selected medicine; if not found, return 404.
+    medicine = get_object_or_404(Medicine, id=medicine_id)
+    
+    # Ensure the logged-in user has an associated Patient profile.
+    try:
+        patient = Patient.objects.get(user=request.user)
+    except Patient.DoesNotExist:
+        return redirect('register')  # or show an error message
+
+    # Create a new medicine order. For simplicity, one order equals one medicine.
+    order = MedicineOrder.objects.create(
+        patient=patient,
+        medicine=medicine,
+        total_price=medicine.price,
+        status='Pending'
+    )
+    # Optionally, you might update medicine stock here.
+    # Redirect the user to the order details page.
+    return redirect('order_details')
+
+
+@login_required
+def cancel_medicine_order(request, order_id):
+    order = get_object_or_404(MedicineOrder, id=order_id, patient__user=request.user)
+    # Allow cancellation only if the order status is 'Pending'
+    if order.status.lower() == "pending":
+        order.status = "Cancelled"
+        order.save()
+    return redirect('order_details')
+
+@login_required
+def clear_order_entries(request):
+    if request.method == "POST":
+        # Delete orders that are either Completed or Cancelled for the logged-in user
+        MedicineOrder.objects.filter(
+            patient__user=request.user,
+            status__in=["Completed", "Cancelled"]
+        ).delete()
+    return redirect('order_details')
+
+
+def fetch_trending_articles_gnews(request):
+    api_key = settings.GNEWS_API_KEY
+    # Fetch top health headlines for India (adjust country and category as needed)
+    url = f"https://gnews.io/api/v4/top-headlines?category=health&country=in&apikey={api_key}"
+    response = requests.get(url)
+    articles = []
+    if response.status_code == 200:
+        data = response.json()
+        articles = data.get("articles", [])
+    else:
+        print("GNews API error:", response.text)
+    return render(request, 'healthcare_app/health_articles_external.html', {'articles': articles})

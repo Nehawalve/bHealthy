@@ -130,3 +130,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/login/'
+
+
+GNEWS_API_KEY = '905c42030952ea5100d92c8d3b98e90e'
