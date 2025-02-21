@@ -48,19 +48,8 @@ class AppointmentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)  # We’ll pass 'user' from the view
         super().__init__(*args, **kwargs)
+        self.fields['doctor'].queryset = DoctorProfile.objects.filter(is_lab_tester=False)
 
-        # Check if the user is provided and authenticated
-        if user is not None and getattr(user, 'is_authenticated', False):
-            self.fields['patient'].queryset = Patient.objects.filter(user=user)
-        else:
-            self.fields['patient'].queryset = Patient.objects.all()
-        #below is original remove above one to go back to original
-        #if user and 'patient' in self.fields:
-            #self.fields['patient'].queryset = Patient.objects.filter(user=user)
-        #else:
-            # For anonymous users, you can either show all patients or none.
-            # Here we choose to show all.
-            #self.fields['patient'].queryset = Patient.objects.all()
 
 class PatientForm(forms.ModelForm):
     # Example phone regex validator
