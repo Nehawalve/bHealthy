@@ -32,13 +32,14 @@ def book_lab_test(request, test_id):
         try:
             patient = Patient.objects.get(user=request.user)
         except Patient.DoesNotExist:
-            return redirect('register')
+            messages.error(request, "Please create your patient profile to book lab tests.")
+            return redirect('patient_create')
         schedule_date_str = request.POST.get('schedule_date')
         try:
             schedule_date = datetime.strptime(schedule_date_str, "%Y-%m-%dT%H:%M")
         except ValueError:
             return render(request, 'healthcare_app/book_lab_test.html', {'test': test, 'error': 'Invalid date format.'})
-        
+         
         # Create a lab test appointment with no assigned doctor and flag it as lab test.
         appointment = Appointment.objects.create(
             patient=patient,
@@ -96,9 +97,7 @@ def register(request):
 
 @login_required    
 def book_appointment(request):
-    # Use request.user only if authenticated; otherwise, use None.
-    current_user = request.user if getattr(request.user, 'is_authenticated', False) else None
-
+    
     initial = {}
     doctor_id = request.GET.get('doctor')
     if doctor_id:
@@ -311,3 +310,28 @@ def fetch_trending_articles_gnews(request):
     else:
         print("GNews API error:", response.text)
     return render(request, 'healthcare_app/health_articles_external.html', {'articles': articles})
+
+
+@login_required
+def patient_edit(request, patient_id):
+    # Only allow editing if the patient belongs to the logged-in user.
+    patient = get_object_or_404(Patient, id=patient_id, user=request.user)
+    if request.method == 'POST':
+        form = PatientForm(request.POST, instance=patient)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Your profile has been updated.")
+            return redirect('patient_list')
+    else:
+        form = PatientForm(instance=patient)
+    return render(request, 'healthcare_app/patient_edit.html', {'form': form, 'patient': patient})
+
+@login_required
+def patient_delete(request, patient_id):
+    # Only allow deletion if the patient belongs to the logged-in user.
+    patient = get_object_or_404(Patient, id=patient_id, user=request.user)
+    if request.method == 'POST':
+        patient.delete()
+        messages.success(request, "Your profile has been deleted.")
+        return redirect('patient_list')
+    return render(request, 'healthcare_app/patient_confirm_delete.html', {'patient': patient})

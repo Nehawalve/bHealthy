@@ -46,9 +46,13 @@ class AppointmentForm(forms.ModelForm):
             ),
         }
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)  # We’ll pass 'user' from the view
+        user = kwargs.pop('user', None)  # Expect the view to pass the logged-in user
         super().__init__(*args, **kwargs)
         self.fields['doctor'].queryset = DoctorProfile.objects.filter(is_lab_tester=False)
+        if user:
+            self.fields['patient'].queryset = Patient.objects.filter(user=user)
+        else:
+            self.fields['patient'].queryset = Patient.objects.none()
 
 
 class PatientForm(forms.ModelForm):

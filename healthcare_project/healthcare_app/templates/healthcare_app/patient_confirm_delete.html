@@ -1,0 +1,13 @@
+{% extends "healthcare_app/base.html" %}
+{% block title %}Delete Patient Profile{% endblock %}
+{% block content %}
+<div class="container my-5">
+  <h2>Delete Patient Profile</h2>
+  <p>Are you sure you want to delete your patient profile? This action cannot be undone.</p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Yes, Delete Profile</button>
+    <a href="{% url 'patient_list' %}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+{% endblock %}

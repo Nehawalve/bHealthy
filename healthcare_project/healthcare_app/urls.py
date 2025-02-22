@@ -38,6 +38,8 @@ urlpatterns = [
     path('medicine/order/cancel/<int:order_id>/', views.cancel_medicine_order, name='cancel_medicine_order'),
     path('medicine/order/clear/', views.clear_order_entries, name='clear_order_entries'),
     path('external_health_articles/', views.fetch_trending_articles_gnews, name='external_health_articles'),
+    path('patients/edit/<int:patient_id>/', views.patient_edit, name='patient_edit'),
+    path('patients/delete/<int:patient_id>/', views.patient_delete, name='patient_delete'),
     
     
     
