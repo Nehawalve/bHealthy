@@ -1,29 +1,52 @@
 {% extends "healthcare_app/base.html" %}
-{% block title %}Login{% endblock %}
+{% load widget_tweaks %}
+{% block title %}Patient Login{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-6">
-    <div class="card shadow-sm">
-      <div class="card-header bg-primary text-white">
-        <h3 class="mb-0">Login</h3>
-      </div>
-      <div class="card-body">
-        <form method="post">
-          {% csrf_token %}
-          {% for field in form %}
-          <div class="mb-3">
-            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-            {{ field }}
-            {% if field.help_text %}
-              <small class="form-text text-muted">{{ field.help_text }}</small>
-            {% endif %}
-            {% for error in field.errors %}
-              <div class="text-danger">{{ error }}</div>
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-primary text-white text-center">
+          <h2 class="mb-0" style="font-size: 1.75rem;">Patient Login</h2>
+        </div>
+        <div class="card-body">
+          {% if form.errors %}
+            <div class="alert alert-danger">
+              <ul class="mb-0">
+                {% for field in form %}
+                  {% for error in field.errors %}
+                    <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                  {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                  <li>{{ error }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+          <form method="post" novalidate>
+            {% csrf_token %}
+            {% for field in form %}
+              <div class="mb-3">
+                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                {% render_field field class="form-control" %}
+                {% for error in field.errors %}
+                  <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+              </div>
             {% endfor %}
-          </div>
-          {% endfor %}
-          <button type="submit" class="btn btn-primary">Login</button>
-        </form>
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-primary btn-lg">Login</button>
+            </div>
+          </form>
+        </div>
+        <div class="card-footer text-center bg-white">
+          <p class="mb-0">
+            Don’t have an account?
+            <a href="{% url 'register' %}" class="text-primary">Register here</a>.
+          </p>
+        </div>
       </div>
     </div>
   </div>

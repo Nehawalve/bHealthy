@@ -88,7 +88,7 @@ class PatientForm(forms.ModelForm):
 
     class Meta:
         model = Patient
-        fields = ['first_name', 'last_name', 'dob', 'email', 'phone']
+        fields = ['first_name', 'last_name', 'dob', 'email', 'phone','address']
         widgets = {
             'first_name': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -98,7 +98,11 @@ class PatientForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'Enter last name'
             }),
-            # We already overrode `dob`, `email`, and `phone` above
+            'address': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter your address',
+                'rows': 3
+            }),
         }
 
 SPECIALTY_CHOICES = [

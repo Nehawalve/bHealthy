@@ -9,6 +9,8 @@ from django.http import HttpResponse
 from datetime import datetime
 from django.conf import settings
 import requests
+from django.contrib import messages
+
 
 
 def home(request):
@@ -48,6 +50,7 @@ def book_lab_test(request, test_id):
         return render(request, 'healthcare_app/lab_test_booking_confirm.html', {'appointment': appointment})
     return render(request, 'healthcare_app/book_lab_test.html', {'test': test})
 
+@login_required
 def buy_medicine(request):
     # Retrieve all available medicines, you might order them by name.
     medicines = Medicine.objects.all().order_by('name')
@@ -251,7 +254,8 @@ def order_medicine(request, medicine_id):
     try:
         patient = Patient.objects.get(user=request.user)
     except Patient.DoesNotExist:
-        return redirect('register')  # or show an error message
+        messages.error(request, "Please create your patient profile to order medicine.")
+        return redirect('patient_create')
 
     # Create a new medicine order. For simplicity, one order equals one medicine.
     order = MedicineOrder.objects.create(
@@ -282,7 +286,17 @@ def clear_order_entries(request):
             patient__user=request.user,
             status__in=["Completed", "Cancelled"]
         ).delete()
+        # Recalculate order numbers for the remaining orders for this patient
+        try:
+            patient = Patient.objects.get(user=request.user)
+            orders = MedicineOrder.objects.filter(patient=patient).order_by('order_date')
+            for idx, order in enumerate(orders, start=1):
+                if order.order_number != idx:
+                    MedicineOrder.objects.filter(pk=order.pk).update(order_number=idx)
+        except Patient.DoesNotExist:
+            pass  # If no patient profile exists, nothing to recalc.
     return redirect('order_details')
+
 
 
 def fetch_trending_articles_gnews(request):
