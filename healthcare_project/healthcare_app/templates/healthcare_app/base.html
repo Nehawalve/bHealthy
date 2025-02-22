@@ -17,6 +17,7 @@
       <a class="navbar-brand text-white fs-4" href="{% url 'home' %}">Healthcare</a>
       <nav>
         <ul class="nav">
+          <li class="nav-item"><a class="nav-link text-white" href="{% url 'home' %}">Home</a></li>
           {% if user.is_authenticated %}
             {% if user.doctorprofile %}
               {# Doctor-specific navigation #}
@@ -38,9 +39,8 @@
             </li>
           {% else %}
             {# Navigation for anonymous users #}
-            <li class="nav-item"><a class="nav-link text-white" href="{% url 'home' %}">Home</a></li>
-            <li class="nav-item"><a class="nav-link text-white" href="{% url 'login' %}">Login</a></li>
-            <li class="nav-item"><a class="nav-link text-white" href="{% url 'register' %}">Register</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="{% url 'login' %}">Patient Login</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="{% url 'register' %}">Patient Register</a></li>
             <li class="nav-item"><a class="nav-link text-white" href="{% url 'doctor_login' %}">Doctor Login</a></li>
             <li class="nav-item"><a class="nav-link text-white" href="{% url 'doctor_register' %}">Doctor Register</a></li>
           {% endif %}
