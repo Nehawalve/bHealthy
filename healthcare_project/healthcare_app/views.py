@@ -8,9 +8,10 @@ from .forms import DoctorRegistrationForm
 from django.http import HttpResponse
 from datetime import datetime
 from django.conf import settings
-import requests
 from django.contrib import messages
-
+from django.utils import timezone
+import requests
+import random
 
 
 def home(request):
@@ -27,8 +28,6 @@ def lab_tests(request):
 def book_lab_test(request, test_id):
     test = get_object_or_404(LabTest, id=test_id)
     if request.method == "POST":
-        if not request.user.is_authenticated:
-            return redirect('login')
         try:
             patient = Patient.objects.get(user=request.user)
         except Patient.DoesNotExist:
@@ -39,6 +38,17 @@ def book_lab_test(request, test_id):
             schedule_date = datetime.strptime(schedule_date_str, "%Y-%m-%dT%H:%M")
         except ValueError:
             return render(request, 'healthcare_app/book_lab_test.html', {'test': test, 'error': 'Invalid date format.'})
+        
+        # If the appointment date is naive, make it aware using the current timezone.
+        if timezone.is_naive(schedule_date):
+            schedule_date = timezone.make_aware(schedule_date, timezone.get_current_timezone())
+        
+        # Validate that the schedule date is in the future.
+        if schedule_date <= timezone.now():
+            return render(request, 'healthcare_app/book_lab_test.html', {
+                'test': test,
+                'error': 'Please enter a future date and time.'
+            })
          
         # Create a lab test appointment with no assigned doctor and flag it as lab test.
         appointment = Appointment.objects.create(
@@ -78,7 +88,22 @@ def doctor_list(request):
         doctors = DoctorProfile.objects.filter(specialty__icontains=genre, is_lab_tester=False)
     else:
         doctors = DoctorProfile.objects.filter(is_lab_tester=False)
-    return render(request, 'healthcare_app/doctor_list.html', {'doctors': doctors, 'genre': genre})
+
+    doctor_list_with_rating = []
+    for doctor in doctors:
+        random.seed(doctor.id)  # deterministic rating per doctor
+        rating = round(random.uniform(3.0, 5.0), 1)
+        star_rating = int(round(rating))  # convert to integer for star display
+        doctor_list_with_rating.append({
+            'doctor': doctor,
+            'rating': rating,
+            'star_rating': star_rating
+        })
+    
+    return render(request, 'healthcare_app/doctor_list.html', {
+        'doctor_list': doctor_list_with_rating,
+        'genre': genre
+    })
 
 
 

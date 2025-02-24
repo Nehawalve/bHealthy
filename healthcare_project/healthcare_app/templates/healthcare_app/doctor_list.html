@@ -13,8 +13,8 @@
       <a class="nav-link {% if genre|lower == 'neurologist' %}active{% endif %}" href="{% url 'doctor_list' %}?genre=neurologist">Neurologist</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link {% if genre|lower == 'surgeon' %}active{% endif %}" href="{% url 'doctor_list' %}?genre=surgeon">Surgeon</a>
-    </li>
+      <a class="nav-link {% if genre|lower == 'general_physician' or genre|lower == 'general physician' %}active{% endif %}" href="{% url 'doctor_list' %}?genre=general_physician">General Physician</a>
+    </li>    
     <li class="nav-item">
       <a class="nav-link {% if genre|lower == 'gynecologist' %}active{% endif %}" href="{% url 'doctor_list' %}?genre=gynecologist">Gynecologist</a>
     </li>
@@ -46,7 +46,8 @@
 </div>
 
 <div class="row">
-  {% for doctor in doctors %}
+  {% for entry in doctor_list %}
+    {% with doctor=entry.doctor rating=entry.rating star_rating=entry.star_rating %}
     <div class="col-md-4">
       <div class="card mb-4 shadow-sm">
         <div class="card-body">
@@ -64,11 +65,21 @@
             <p class="card-text"><strong>Fee:</strong> Call for details</p>
           {% endif %}
           <p class="card-text">{{ doctor.bio|truncatewords:20 }}</p>
-          <!-- Book Appointment Button: Pass doctor.id to auto-select in booking page -->
+          <p class="mb-1"><strong>Rating:</strong> {{ rating }} / 5</p>
+          <p>
+            {% for i in "12345" %}
+              {% if forloop.counter <= star_rating %}
+                <i class="bi bi-star-fill text-warning"></i>
+              {% else %}
+                <i class="bi bi-star text-warning"></i>
+              {% endif %}
+            {% endfor %}
+          </p>
           <a href="{% url 'book_appointment' %}?doctor={{ doctor.id }}" class="btn btn-primary btn-sm">Book Appointment</a>
         </div>
       </div>
     </div>
+    {% endwith %}
   {% empty %}
     <p class="text-muted text-center">No doctors found.</p>
   {% endfor %}

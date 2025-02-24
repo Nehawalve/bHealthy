@@ -5,6 +5,8 @@ from .models import Appointment, Patient
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from .models import DoctorProfile
+from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 
 class AppointmentForm(forms.ModelForm):
@@ -53,6 +55,21 @@ class AppointmentForm(forms.ModelForm):
             self.fields['patient'].queryset = Patient.objects.filter(user=user)
         else:
             self.fields['patient'].queryset = Patient.objects.none()
+
+    def clean_appointment_date(self):
+        appointment_date = self.cleaned_data.get('appointment_date')
+        if appointment_date:
+            # If the appointment_date is naive, assume it's in the local timezone.
+            if timezone.is_naive(appointment_date):
+                appointment_date = timezone.make_aware(appointment_date, timezone.get_current_timezone())
+            now = timezone.now()
+            # Debug: Uncomment the following two lines to log the values during testing.
+            # print("Appointment Date:", appointment_date)
+            # print("Now:", now)
+            if appointment_date <= now:
+                raise forms.ValidationError("Please enter a future date and time.")
+        return appointment_date
+
 
 
 class PatientForm(forms.ModelForm):
@@ -111,7 +128,7 @@ class PatientForm(forms.ModelForm):
 
 SPECIALTY_CHOICES = [
     ('neurologist', 'Neurologist'),
-    ('surgeon', 'Surgeon'),
+    ('general_physician', 'General Physician'),
     ('gynecologist', 'Gynecologist'),
     ('cardiologist', 'Cardiologist'),
     ('dentist', 'Dentist'),
