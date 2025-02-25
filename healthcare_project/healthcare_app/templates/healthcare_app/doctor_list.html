@@ -4,6 +4,10 @@
 {% block content %}
 <div class="mb-4">
   <h2>Our Doctors</h2>
+  <!-- Real-time Search Box -->
+  <div class="mb-3">
+    <input type="text" id="doctorSearch" class="form-control" placeholder="Search doctors by name or specialty...">
+  </div>
   <!-- Genre Filter Pills -->
   <ul class="nav nav-pills justify-content-center flex-wrap mb-3">
     <li class="nav-item">
@@ -45,40 +49,40 @@
   </ul>
 </div>
 
-<div class="row">
+<div class="row" id="doctorListContainer">
   {% for entry in doctor_list %}
     {% with doctor=entry.doctor rating=entry.rating star_rating=entry.star_rating %}
-    <div class="col-md-4">
-      <div class="card mb-4 shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title">
-            {% if doctor.user.first_name %}
-              Dr. {{ doctor.user.first_name }}
-            {% else %}
-              {{ doctor.user.username }}
-            {% endif %}
-          </h5>
-          <h6 class="card-subtitle mb-2 text-muted">{{ doctor.specialty }}</h6>
-          {% if doctor.checkup_fee %}
-            <p class="card-text"><strong>Checkup Fee:</strong> ₹{{ doctor.checkup_fee }}</p>
-          {% else %}
-            <p class="card-text"><strong>Fee:</strong> Call for details</p>
-          {% endif %}
-          <p class="card-text">{{ doctor.bio|truncatewords:20 }}</p>
-          <p class="mb-1"><strong>Rating:</strong> {{ rating }} / 5</p>
-          <p>
-            {% for i in "12345" %}
-              {% if forloop.counter <= star_rating %}
-                <i class="bi bi-star-fill text-warning"></i>
+      <div class="col-md-4 mb-4 doctor-card">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title doctor-name">
+              {% if doctor.user.first_name %}
+                Dr. {{ doctor.user.first_name }}
               {% else %}
-                <i class="bi bi-star text-warning"></i>
+                {{ doctor.user.username }}
               {% endif %}
-            {% endfor %}
-          </p>
-          <a href="{% url 'book_appointment' %}?doctor={{ doctor.id }}" class="btn btn-primary btn-sm">Book Appointment</a>
+            </h5>
+            <h6 class="card-subtitle mb-2 text-muted doctor-specialty">{{ doctor.specialty }}</h6>
+            {% if doctor.checkup_fee %}
+              <p class="card-text"><strong>Checkup Fee:</strong> ₹{{ doctor.checkup_fee }}</p>
+            {% else %}
+              <p class="card-text"><strong>Fee:</strong> Call for details</p>
+            {% endif %}
+            <p class="card-text">{{ doctor.bio|truncatewords:20 }}</p>
+            <p class="mb-1"><strong>Rating:</strong> {{ rating }} / 5</p>
+            <p>
+              {% for i in "12345" %}
+                {% if forloop.counter <= star_rating %}
+                  <i class="bi bi-star-fill text-warning"></i>
+                {% else %}
+                  <i class="bi bi-star text-warning"></i>
+                {% endif %}
+              {% endfor %}
+            </p>
+            <a href="{% url 'book_appointment' %}?doctor={{ doctor.id }}" class="btn btn-primary btn-sm">Book Appointment</a>
+          </div>
         </div>
       </div>
-    </div>
     {% endwith %}
   {% empty %}
     <p class="text-muted text-center">No doctors found.</p>
