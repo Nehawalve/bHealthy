@@ -197,27 +197,40 @@ def doctor_register(request):
 def doctor_dashboard(request):
     try:
         doctor_profile = request.user.doctorprofile
-    except Exception:
+    except DoctorProfile.DoesNotExist:
         return redirect('doctor_register')
-    
+
     hide_completed = request.GET.get('hide_completed') == '1'
-    
+
+    # Determine which appointments to show
     if doctor_profile.is_lab_tester:
-        # For lab testers, show all lab test appointments
+        # Lab testers see all lab test appointments
         appointments = Appointment.objects.filter(is_lab_test=True).order_by('appointment_date')
+        print("[DEBUG] doctor_dashboard: Lab tester account, showing lab test appointments.")
     else:
-        # For regular doctors, show only non-lab test appointments assigned to them
-        appointments = Appointment.objects.filter(doctor=doctor_profile, is_lab_test=False).order_by('appointment_date')
-    
+        # Regular doctors see only their appointments
+        appointments = Appointment.objects.filter(
+            doctor=doctor_profile,
+            is_lab_test=False
+        ).order_by('appointment_date')
+        print(f"[DEBUG] doctor_dashboard: Regular doctor={doctor_profile}, showing assigned appointments.")
+
+    # Optionally hide completed checkups
     if hide_completed:
         appointments = appointments.filter(checkup_done=False)
-    
+        print("[DEBUG] doctor_dashboard: Hiding completed checkups.")
+
+    # Refresh each appointment from the DB to ensure queue_number is up to date
+    for app in appointments:
+        print(f"[DEBUG] Before refresh: ID={app.pk}, queue_number={app.queue_number}")
+        app.refresh_from_db(fields=['queue_number'])
+        print(f"[DEBUG] After refresh: ID={app.pk}, queue_number={app.queue_number}")
+
     context = {
         'appointments': appointments,
         'hide_completed': hide_completed,
     }
     return render(request, 'healthcare_app/doctor_dashboard.html', context)
-
 
 @login_required
 def cancel_appointment(request, appointment_id):
@@ -360,3 +373,14 @@ def patient_delete(request, patient_id):
         messages.success(request, "Your profile has been deleted.")
         return redirect('patient_list')
     return render(request, 'healthcare_app/patient_confirm_delete.html', {'patient': patient})
+
+
+@login_required
+def clear_completed_appointments(request):
+    if request.method == "POST":
+        # Delete all appointments where checkup_done=True for the logged-in user
+        Appointment.objects.filter(
+            patient__user=request.user,
+            checkup_done=True
+        ).delete()
+    return redirect('appointment_list')

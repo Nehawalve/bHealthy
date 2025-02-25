@@ -52,8 +52,8 @@
       <div class="card mb-4 shadow-sm">
         <div class="card-body">
           <h5 class="card-title">
-            {% if doctor.user.get_full_name %}
-              {{ doctor.user.get_full_name }}
+            {% if doctor.user.first_name %}
+              Dr. {{ doctor.user.first_name }}
             {% else %}
               {{ doctor.user.username }}
             {% endif %}

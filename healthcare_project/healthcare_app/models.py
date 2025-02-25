@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.utils import timezone
+import datetime
 
 class DoctorProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -11,7 +12,8 @@ class DoctorProfile(models.Model):
     is_lab_tester = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.user.get_full_name() or self.user.username
+        name = self.user.get_full_name() or self.user.username
+        return f"Dr. {name}"
 
 
 class Patient(models.Model):
@@ -33,34 +35,69 @@ class Appointment(models.Model):
     reason = models.TextField()
     queue_number = models.IntegerField(null=True, blank=True)
     checkup_done = models.BooleanField(default=False)
-    is_lab_test = models.BooleanField(default=False)  # Flag for lab test appointments
+    is_lab_test = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
-        # Save first
+        """
+        Custom save method that recalculates queue_number for appointments
+        on the same local calendar date, for either lab test or a specific doctor.
+        """
+        # Debug: Indicate that save() was called
+        print(f"[DEBUG] Appointment.save() called for ID={self.pk} "
+              f"date={self.appointment_date}, is_lab_test={self.is_lab_test}")
+
+        # A flag to prevent recursion on subsequent .save() calls
+        recalc = kwargs.pop('_recalc', True)
+
+        # First, save the Appointment normally
         super().save(*args, **kwargs)
-        # Recalculate queue numbers only for pending non-completed appointments on the same day.
-        # For lab test appointments, you might choose to recalc separately if needed.
-        if not self.is_lab_test:
-            appointments = Appointment.objects.filter(
-                doctor=self.doctor,
-                appointment_date__date=self.appointment_date.date(),
-                checkup_done=False,
-                is_lab_test=False
-            ).order_by('appointment_date')
-        else:
-            # For lab test appointments, recalc queue numbers for all lab test appointments on that day.
-            appointments = Appointment.objects.filter(
-                is_lab_test=True,
-                appointment_date__date=self.appointment_date.date(),
-                checkup_done=False
-            ).order_by('appointment_date')
-        for idx, appointment in enumerate(appointments, start=1):
-            if appointment.queue_number != idx:
-                Appointment.objects.filter(pk=appointment.pk).update(queue_number=idx)
+
+        if recalc:
+            # Convert the appointment date to local time so we can filter by local date
+            local_dt = timezone.localtime(self.appointment_date)
+            local_date = local_dt.date()
+
+            print(f"[DEBUG] Local date for appointment ID={self.pk} is {local_date}")
+
+            if self.is_lab_test:
+                # Lab testers see all lab test appointments on the same local date
+                print("[DEBUG] This is a lab test appointment. "
+                      "Filtering all lab test appointments for the same local date.")
+                qs = Appointment.objects.filter(
+                    is_lab_test=True,
+                    checkup_done=False,
+                    appointment_date__range=(
+                        datetime.datetime.combine(local_date, datetime.time.min, local_dt.tzinfo),
+                        datetime.datetime.combine(local_date, datetime.time.max, local_dt.tzinfo),
+                    )
+                ).order_by('appointment_date')
+            else:
+                # For non-lab test appointments, filter by the same doctor on the same local date
+                print(f"[DEBUG] This is a doctor appointment for doctor={self.doctor}. "
+                      "Filtering appointments for the same local date.")
+                qs = Appointment.objects.filter(
+                    doctor=self.doctor,
+                    is_lab_test=False,
+                    checkup_done=False,
+                    appointment_date__range=(
+                        datetime.datetime.combine(local_date, datetime.time.min, local_dt.tzinfo),
+                        datetime.datetime.combine(local_date, datetime.time.max, local_dt.tzinfo),
+                    )
+                ).order_by('appointment_date')
+
+            print(f"[DEBUG] Found {qs.count()} appointments to re-sequence on {local_date}.")
+
+            # Enumerate over the appointments, assigning queue_number in chronological order
+            for idx, app in enumerate(qs, start=1):
+                print(f"[DEBUG] Checking ID={app.pk}, old queue_number={app.queue_number}, new idx={idx}")
+                if app.queue_number != idx:
+                    app.queue_number = idx
+                    # Save again without triggering recursion
+                    app.save(_recalc=False, update_fields=['queue_number'])
+                    print(f"[DEBUG] Updated queue_number to {idx} for ID={app.pk}")
 
     def __str__(self):
         return f"Appointment for {self.patient} on {self.appointment_date}"
-
 
 class Doctor(models.Model):
     name = models.CharField(max_length=100)
